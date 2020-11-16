@@ -13,7 +13,7 @@
 #define BAT_HEIGHT 15
 
 //global vars
-int bat_position = (SCREEN_WIDTH / 2) - (BAT_WIDTH/2);
+int bat_position = (SCREEN_WIDTH / 2) - (BAT_WIDTH / 2);
 sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "BRICK BREAKER");
 sf::RectangleShape __bat;
 sf::CircleShape __ball;
@@ -26,6 +26,10 @@ float dt = 0.35;
 bool gameOver = false;
 int noOfBricks;
 bool gameStarted = false;
+sf::Sprite brickSprite;
+sf::Texture brickTexture;
+sf::SoundBuffer __buffer;
+sf::Sound __sound;
 
 //method declarations
 void setTiles();
@@ -48,19 +52,15 @@ void render(sf::RectangleShape bat)
 {
     window.clear();
     drawAll(bat);
-
-    //window.draw(__text);
     window.display();
 }
 
-int loadSound()
+void playSound()
 {
-    sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("all-right.wav"))
-        return -1;
-
-    sound.setBuffer(buffer);
-    return 0;
+    if(gameStarted){
+        __sound.play();
+    }
+    
 }
 
 void drawBall()
@@ -70,19 +70,19 @@ void drawBall()
     if (ballPos.x <= 0 + 5 || ballPos.x >= 1024 - 10)
     {
         x_dir = x_dir * -1;
-        sound.play();
+        playSound();
     }
 
     if (ballPos.y <= 0 + 5 || ballPos.y >= 640 - 10)
     {
         y_dir = y_dir * -1;
-        sound.play();
+        playSound();
     }
 
     if (ballPos.y >= batPos.y - 20 && ballPos.x >= batPos.x && ballPos.x <= batPos.x + 100)
     {
         y_dir = y_dir * -1;
-        sound.play();
+        playSound();
     }
 
     for (std::size_t i = 0; i < __v.size(); i++)
@@ -95,6 +95,7 @@ void drawBall()
                 x_dir = x_dir * -1;
                 __v.erase(__v.begin() + i);
                 noOfBricks = noOfBricks - 1;
+                playSound();
                 break;
             }
         }
@@ -107,6 +108,7 @@ void drawBall()
                 y_dir = y_dir * -1;
                 __v.erase(__v.begin() + i);
                 noOfBricks = noOfBricks - 1;
+                playSound();
                 break;
             }
         }
@@ -137,7 +139,9 @@ void drawTiles()
 
     for (std::size_t i = 0; i < __v.size(); ++i)
     {
-        window.draw(__v[i]);
+        sf::RectangleShape brick = __v[i];
+        brick.setTexture(&brickTexture);
+        window.draw(brick);
     }
 }
 
@@ -186,6 +190,11 @@ sf::RectangleShape getBat()
 
 void setTiles()
 {
+    if (!brickTexture.loadFromFile("src/res/imgs/tile_modern.jpg"))
+    {
+        std::cout << "Could not load texture!" << std::endl;
+        system("pause");
+    }
     std::vector<sf::RectangleShape> v;
     for (int j = 0; j < 5; j++)
     {
@@ -195,8 +204,6 @@ void setTiles()
             float bw = getBrickWidth();
             rect.setSize(sf::Vector2f(70, 30));
             rect.setPosition((i * (bw + 2 * X_GAP)) + LATERAL_PADDING, (j * (30 + 2 * Y_GAP)) + Y_GAP);
-            sf::Color alt_color = (i + j) % 2 == 0 ? sf::Color::Green : sf::Color::White;
-            rect.setFillColor(alt_color);
             v.push_back(rect);
         }
     }
@@ -218,7 +225,8 @@ void handlePress(sf::Keyboard::Key key, bool isPressed)
                 __bat.move(sf::Vector2f(-20, 0));
             }
 
-            if(!gameStarted && __ball.getPosition().x >= 50){
+            if (!gameStarted && __ball.getPosition().x >= 50)
+            {
                 __ball.move(sf::Vector2f(-20, 0));
             }
         }
@@ -231,7 +239,8 @@ void handlePress(sf::Keyboard::Key key, bool isPressed)
                 __bat.move(sf::Vector2f(+20, 0));
             }
 
-            if(!gameStarted && __ball.getPosition().x >= 900){
+            if (!gameStarted && __ball.getPosition().x >= 900)
+            {
                 __ball.move(sf::Vector2f(+20, 0));
             }
         }
@@ -271,10 +280,15 @@ void processEvents()
 
 int main()
 {
+    if (!__buffer.loadFromFile("src/res/sounds/ping_pong.wav"))
+    {
+        std::cout << "Could not load Sound File" << std::endl;
+    }
+    __sound.setBuffer(__buffer);
     setTiles();
     __bat = getBat();
     __ball = getBall();
-    sf::Vector2i winPos = window.getPosition();
+    //sf::Vector2i winPos = window.getPosition();
     while (window.isOpen())
     {
         processEvents();
