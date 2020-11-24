@@ -15,6 +15,8 @@
 #define BAT_HEIGHT 15
 #define LS_X 0
 #define LS_Y 1
+#define BRICK_WIDTH 70
+#define BRICK_HEIGHT 30
 
 //global vars
 int bat_position = (SCREEN_WIDTH / 2) - (BAT_WIDTH / 2);
@@ -32,6 +34,7 @@ int noOfBricks;
 bool gameStarted = false;
 sf::Sprite brickSprite;
 sf::Texture brickTexture;
+sf::Texture brickTexture2;
 sf::Texture ballTexture;
 sf::SoundBuffer __buffer;
 sf::Texture batTexture;
@@ -39,6 +42,12 @@ sf::Sound __sound;
 std::string message = "";
 bool initialised = false;
 int lastSwitch = LS_Y;
+
+int bricks[5][9] = {{2, 2, 2, 2, 2, 2, 2, 2, 2},
+                    {2, 2, 2, 2, 2, 2, 2, 2, 2},
+                    {2, 2, 2, 2, 2, 2, 2, 2, 2},
+                    {2, 2, 2, 2, 2, 2, 2, 2, 2},
+                    {2, 2, 2, 2, 2, 2, 2, 2, 2}};
 
 //method declarations
 void setTiles();
@@ -49,6 +58,9 @@ sf::Text getText();
 void drawTiles();
 void setText();
 void initGame();
+sf::RectangleShape getBrick(int i, int j, int type);
+int getBrickX(int i);
+int getBrickY(int j);
 
 float getBrickWidth()
 {
@@ -105,33 +117,38 @@ int drawBall()
         playSound();
     }
 
-    for (std::size_t i = 0; i < __v.size(); i++)
+    for (int i = 0; i < 5; i++)
     {
-        sf::Vector2f brPos = __v.at(i).getPosition();
-
-        if (ballPos.x > brPos.x && ballPos.x < brPos.x + 70)
+        for (int j = 0; j < 9; j++)
         {
-            float cond1 = std::abs(brPos.y - ballPos.y);
-            float cond2 = std::abs(ballPos.y - (brPos.y + 30));
-            if ((cond1<=1 && cond1>=0) || (cond2<=1 && cond2>=0))
+            if(bricks[i][j] == 0)continue;
+            int brickX = getBrickX(j);
+            int brickY = getBrickY(i);
+            if (ballPos.x > brickX && ballPos.x < brickX + BRICK_WIDTH)
             {
-                y_dir = y_dir * -1;
-                __v.erase(__v.begin() + i);
-                noOfBricks = noOfBricks - 1;
-                playSound();
-                break;
+                float cond1 = std::abs(brickY - ballPos.y);
+                float cond2 = std::abs(ballPos.y - (brickY + BRICK_HEIGHT));
+                if ((cond1 <= 1 && cond1 >= 0) || (cond2 <= 1 && cond2 >= 0))
+                {
+                    y_dir = y_dir * -1;
+                    bricks[i][j]--;
+                    noOfBricks = noOfBricks - 1;
+                    playSound();
+                    break;
+                }
             }
-        }else if (ballPos.y > brPos.y && ballPos.y < brPos.y + 30)
-        {
-            float cond1 = std::abs(brPos.x - ballPos.x);
-            float cond2 = std::abs(ballPos.x - (brPos.x + 70));
-            if ((cond1<=5.25 && cond1>=0.25) || cond2<=5.25 && cond2>=0.25)
+            else if (ballPos.y > brickY && ballPos.y < brickY + BRICK_HEIGHT)
             {
-                x_dir = x_dir * -1;
-                __v.erase(__v.begin() + i);
-                noOfBricks = noOfBricks - 1;
-                playSound();
-                break;
+                float cond1 = std::abs(brickX - ballPos.x);
+                float cond2 = std::abs(ballPos.x - (brickX + BRICK_WIDTH));
+                if ((cond1 <= 5.25 && cond1 >= 0.25) || cond2 <= 5.25 && cond2 >= 0.25)
+                {
+                    x_dir = x_dir * -1;
+                    bricks[i][j]--;
+                    noOfBricks = noOfBricks - 1;
+                    playSound();
+                    break;
+                }
             }
         }
     }
@@ -165,12 +182,19 @@ void drawAll(sf::RectangleShape bat)
 
 void drawTiles()
 {
-
-    for (std::size_t i = 0; i < __v.size(); ++i)
+    for (int i = 0; i < 5; i++)
     {
-        sf::RectangleShape brick = __v[i];
-        brick.setTexture(&brickTexture);
-        window.draw(brick);
+        for (int j = 0; j < 9; j++)
+        {
+            if (bricks[i][j] == 1)
+            {
+                sf::RectangleShape brick = getBrick(j, i, 1);  
+                window.draw(brick);
+            }else if(bricks[i][j] == 2){
+                sf::RectangleShape brick = getBrick(j, i, 2);  
+                window.draw(brick);
+            }
+        }
     }
 }
 
@@ -219,23 +243,42 @@ sf::RectangleShape getBat()
     return bat;
 }
 
+int getBrickX(int i){
+    return (i * (BRICK_WIDTH + 2 * X_GAP)) + LATERAL_PADDING;
+}
+
+int getBrickY(int j){
+    return (j * (30 + 2 * Y_GAP)) + Y_GAP;
+}
+
+sf::RectangleShape getBrick(int i, int j, int type)
+{
+    sf::RectangleShape rect;
+    rect.setSize(sf::Vector2f(70, 30));
+    float bw = getBrickWidth();
+    rect.setPosition(getBrickX(i), getBrickY(j));
+    if(type == 1){
+        rect.setTexture(&brickTexture);
+    }else if(type == 2){
+        rect.setTexture(&brickTexture2);
+    }
+    
+    return rect;
+}
+
 void setTiles()
 {
-    if (!brickTexture.loadFromFile("src/res/imgs/tile_modern.jpg"))
-    {
-        std::cout << "Could not load texture!" << std::endl;
-        system("pause");
-    }
     std::vector<sf::RectangleShape> v;
     for (int j = 0; j < 5; j++)
     {
         for (int i = 0; i < 9; i++)
         {
-            sf::RectangleShape rect;
-            float bw = getBrickWidth();
-            rect.setSize(sf::Vector2f(70, 30));
-            rect.setPosition((i * (bw + 2 * X_GAP)) + LATERAL_PADDING, (j * (30 + 2 * Y_GAP)) + Y_GAP);
-            v.push_back(rect);
+            int brickVal = bricks[j][i];
+            if (brickVal == 1)
+            {
+                sf::RectangleShape brick = getBrick(i, j, 1);
+                v.push_back(brick);
+            }
         }
     }
     __v = v;
@@ -318,6 +361,18 @@ void processEvents()
 
 int loadResources()
 {
+    if (!brickTexture2.loadFromFile("src/res/imgs/tile_modern.jpg"))
+    {
+        std::cout << "Could not load texture!" << std::endl;
+        system("pause");
+    }
+
+    if (!brickTexture.loadFromFile("src/res/imgs/tile_modern_broken.jpg"))
+    {
+        std::cout << "Could not load texture!" << std::endl;
+        system("pause");
+    }
+
     //load texture for ball
     if (!ballTexture.loadFromFile("src/res/imgs/ball_texture.jpeg"))
     {
@@ -348,7 +403,7 @@ void initGame()
     if (!initialised)
     {
         gameStarted = false;
-        setTiles();
+        //setTiles();
         __bat = getBat();
         __ball = getBall();
         initialised = true;
