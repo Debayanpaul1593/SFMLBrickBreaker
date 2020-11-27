@@ -35,6 +35,7 @@ bool gameStarted = false;
 sf::Sprite brickSprite;
 sf::Texture brickTexture;
 sf::Texture brickTexture2;
+sf::Texture bgTexture;
 sf::Texture ballTexture;
 sf::SoundBuffer __buffer;
 sf::Texture batTexture;
@@ -42,7 +43,7 @@ sf::Sound __sound;
 std::string message = "";
 bool initialised = false;
 int lastSwitch = LS_Y;
-
+sf::Sprite bgSprite;
 int bricks[5][9] = {{2, 2, 2, 2, 2, 2, 2, 2, 2},
                     {2, 2, 2, 2, 2, 2, 2, 2, 2},
                     {2, 2, 2, 2, 2, 2, 2, 2, 2},
@@ -175,6 +176,7 @@ int drawBall()
 
 void drawAll(sf::RectangleShape bat)
 {
+    //window.draw(bgSprite);
     drawTiles();
     window.draw(bat);
     drawBall();
@@ -361,6 +363,11 @@ void processEvents()
 
 int loadResources()
 {
+    if (!bgTexture.loadFromFile("src/res/imgs/level1_bg.png"))
+    {
+        std::cout << "Could not background!" << std::endl;
+        system("pause");
+    }
     if (!brickTexture2.loadFromFile("src/res/imgs/tile_modern.jpg"))
     {
         std::cout << "Could not load texture!" << std::endl;
@@ -374,14 +381,14 @@ int loadResources()
     }
 
     //load texture for ball
-    if (!ballTexture.loadFromFile("src/res/imgs/ball_texture.jpeg"))
+    if (!ballTexture.loadFromFile("src/res/imgs/ball_pixel_crop.png"))
     {
         std::cout << "Could not load ball texture!" << std::endl;
         return 1;
     }
 
     //load texture for bat
-    if (!batTexture.loadFromFile("src/res/imgs/wood_plywood.jpg"))
+    if (!batTexture.loadFromFile("src/res/imgs/pixil_bat_crop.png"))
     {
         std::cout << "Could not load bat texture" << std::endl;
         return 1;
@@ -413,6 +420,9 @@ void initGame()
 int main()
 {
     loadResources();
+    sf::Vector2u size = bgTexture.getSize();
+    bgSprite.setTexture(bgTexture);
+    bgSprite.setOrigin(0, 0);
     initGame();
     //sf::Vector2i winPos = window.getPosition();
     while (window.isOpen())
