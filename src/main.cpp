@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 #include"Bat.h"
+#include"Ball.h"
 //macros
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 640
@@ -24,7 +25,7 @@ int bat_position = (SCREEN_WIDTH / 2) - (BAT_WIDTH / 2);
 sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "BRICK BREAKER");
 //sf::RectangleShape __bat;
 Bat __bat;
-sf::CircleShape __ball;
+Ball __ball;
 sf::Sound sound;
 std::vector<sf::RectangleShape> __v;
 float x_dir = -0.5;
@@ -37,8 +38,8 @@ bool gameStarted = false;
 sf::Sprite brickSprite;
 sf::Texture brickTexture;
 sf::Texture brickTexture2;
-sf::Texture bgTexture;
-sf::Texture ballTexture;
+//sf::Texture bgTexture;
+//sf::Texture ballTexture;
 sf::SoundBuffer __buffer;
 //sf::Texture batTexture;
 sf::Sound __sound;
@@ -54,8 +55,8 @@ int bricks[5][9] = {{2, 2, 2, 2, 2, 2, 2, 2, 2},
 
 //method declarations
 void setTiles();
-sf::RectangleShape getBat();
-sf::CircleShape getBall();
+//sf::RectangleShape getBat();
+//sf::CircleShape getBall();
 void drawAll(sf::RectangleShape bat);
 sf::Text getText();
 void drawTiles();
@@ -225,14 +226,14 @@ void setText()
     window.draw(__text);
 }
 
-sf::CircleShape getBall()
+/*sf::CircleShape getBall()
 {
     sf::CircleShape ball(10.f);
     //ball.setFillColor(sf::Color::Yellow);
     ball.setPosition(bat_position + 140, SCREEN_HEIGHT - 25 - BAT_HEIGHT);
     ball.setTexture(&ballTexture);
     return ball;
-}
+}*/
 
 int getBrickX(int i){
     return (i * (BRICK_WIDTH + 2 * X_GAP)) + LATERAL_PADDING;
@@ -358,13 +359,6 @@ int loadResources()
         system("pause");
     }
 
-    //load texture for ball
-    if (!ballTexture.loadFromFile("src/res/imgs/ball_pixel_crop.png"))
-    {
-        std::cout << "Could not load ball texture!" << std::endl;
-        return 1;
-    }
-
     //load sound effect
     if (!__buffer.loadFromFile("src/res/sounds/ping_pong.wav"))
     {
@@ -383,7 +377,7 @@ void initGame()
         gameStarted = false;
         //setTiles();
         __bat.initialize();
-        __ball = getBall();
+        __ball.initialize();
         initialised = true;
     }
 }
@@ -391,9 +385,9 @@ void initGame()
 int main()
 {
     loadResources();
-    sf::Vector2u size = bgTexture.getSize();
-    bgSprite.setTexture(bgTexture);
-    bgSprite.setOrigin(0, 0);
+    //sf::Vector2u size = bgTexture.getSize();
+    //bgSprite.setTexture(bgTexture);
+    //bgSprite.setOrigin(0, 0);
     initGame();
     //sf::Vector2i winPos = window.getPosition();
     while (window.isOpen())
