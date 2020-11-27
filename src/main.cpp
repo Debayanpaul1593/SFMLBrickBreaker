@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdlib>
 #include <cmath>
+#include"Bat.h"
 //macros
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 640
@@ -21,7 +22,8 @@
 //global vars
 int bat_position = (SCREEN_WIDTH / 2) - (BAT_WIDTH / 2);
 sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "BRICK BREAKER");
-sf::RectangleShape __bat;
+//sf::RectangleShape __bat;
+Bat __bat;
 sf::CircleShape __ball;
 sf::Sound sound;
 std::vector<sf::RectangleShape> __v;
@@ -38,7 +40,7 @@ sf::Texture brickTexture2;
 sf::Texture bgTexture;
 sf::Texture ballTexture;
 sf::SoundBuffer __buffer;
-sf::Texture batTexture;
+//sf::Texture batTexture;
 sf::Sound __sound;
 std::string message = "";
 bool initialised = false;
@@ -232,19 +234,6 @@ sf::CircleShape getBall()
     return ball;
 }
 
-sf::RectangleShape getBat()
-{
-    sf::RectangleShape bat;
-    bat.setSize(sf::Vector2f(BAT_WIDTH, BAT_HEIGHT));
-    //bat.setOutlineColor(sf::Color::Red);
-    //bat.setFillColor(sf::Color::Blue);
-    bat.setPosition(bat_position, SCREEN_HEIGHT - 20);
-    bat.setTexture(&batTexture);
-    //bat.setOutlineThickness(1.f);
-    bat.move(sf::Vector2f(100.f, 0));
-    return bat;
-}
-
 int getBrickX(int i){
     return (i * (BRICK_WIDTH + 2 * X_GAP)) + LATERAL_PADDING;
 }
@@ -298,7 +287,7 @@ void handlePress(sf::Keyboard::Key key, bool isPressed)
 
             if (batPos.x > 2)
             {
-                __bat.move(sf::Vector2f(-20, 0));
+                __bat.slide(-20);
             }
 
             if (!gameStarted && __ball.getPosition().x >= 50)
@@ -312,7 +301,7 @@ void handlePress(sf::Keyboard::Key key, bool isPressed)
         {
             if (batPos.x < 922)
             {
-                __bat.move(sf::Vector2f(+20, 0));
+                __bat.slide(20);
             }
 
             if (!gameStarted && __ball.getPosition().x < 957)
@@ -322,17 +311,11 @@ void handlePress(sf::Keyboard::Key key, bool isPressed)
         }
         break;
     case sf::Keyboard::Space:
-        if (isPressed && !gameStarted)
+        if (!isPressed && !gameStarted)
         {
             gameStarted = true;
             gameOver = false;
         }
-
-        /*if(gameOver){
-            __ball = getBall();
-            gameOver = false;
-            gameStarted = false;
-        }*/
         break;
     default:
         break;
@@ -363,11 +346,6 @@ void processEvents()
 
 int loadResources()
 {
-    if (!bgTexture.loadFromFile("src/res/imgs/level1_bg.png"))
-    {
-        std::cout << "Could not background!" << std::endl;
-        system("pause");
-    }
     if (!brickTexture2.loadFromFile("src/res/imgs/tile_modern.jpg"))
     {
         std::cout << "Could not load texture!" << std::endl;
@@ -384,13 +362,6 @@ int loadResources()
     if (!ballTexture.loadFromFile("src/res/imgs/ball_pixel_crop.png"))
     {
         std::cout << "Could not load ball texture!" << std::endl;
-        return 1;
-    }
-
-    //load texture for bat
-    if (!batTexture.loadFromFile("src/res/imgs/pixil_bat_crop.png"))
-    {
-        std::cout << "Could not load bat texture" << std::endl;
         return 1;
     }
 
@@ -411,7 +382,7 @@ void initGame()
     {
         gameStarted = false;
         //setTiles();
-        __bat = getBat();
+        __bat.initialize();
         __ball = getBall();
         initialised = true;
     }
